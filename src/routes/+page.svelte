@@ -5,53 +5,60 @@
 		{
 			id: 'diagonal',
 			label: 'Diagonal sweep',
-			description: 'The DeepWiki-style slash moving from the upper-left edge.'
+			description:
+				'The DeepWiki-style slash moving from the upper-left edge.',
 		},
 		{
 			id: 'opposite',
 			label: 'Reverse diagonal',
-			description: 'Same geometry, but travelling from the lower-right edge.'
+			description:
+				'Same geometry, but travelling from the lower-right edge.',
 		},
 		{
 			id: 'circle',
 			label: 'Button ripple',
-			description: 'A circular reveal expanding from the toggle button.'
+			description:
+				'A circular reveal expanding from the toggle button.',
 		},
 		{
 			id: 'diamond',
 			label: 'Diamond bloom',
-			description: 'A hard-edged diamond opening from the page centre.'
+			description:
+				'A hard-edged diamond opening from the page centre.',
 		},
 		{
 			id: 'horizontal',
 			label: 'Horizontal wipe',
-			description: 'A fast left-to-right plate slide.'
+			description: 'A fast left-to-right plate slide.',
 		},
 		{
 			id: 'vertical',
 			label: 'Vertical shutter',
-			description: 'A top-to-bottom shutter drop.'
+			description: 'A top-to-bottom shutter drop.',
 		},
 		{
 			id: 'split',
 			label: 'Centre split',
-			description: 'The new theme opens outward from a narrow centre seam.'
+			description:
+				'The new theme opens outward from a narrow centre seam.',
 		},
 		{
 			id: 'blinds',
 			label: 'Venetian blinds',
-			description: 'Alternating horizontal bands scan the new theme in.'
+			description:
+				'Alternating horizontal bands scan the new theme in.',
 		},
 		{
 			id: 'bands',
 			label: 'Angled bands',
-			description: 'A striped diagonal mask sweeps across the viewport.'
-		}
+			description:
+				'A striped diagonal mask sweeps across the viewport.',
+		},
 	] as const;
 
 	type Variant = (typeof variants)[number]['id'];
 
-	function isVariant(value: string | null): value is Variant {
+	function is_variant(value: string | null): value is Variant {
 		return variants.some((item) => item.id === value);
 	}
 
@@ -59,59 +66,83 @@
 	let mounted = $state(false);
 	let variant = $state<Variant>('diagonal');
 
-	const selectedVariant = $derived(variants.find((item) => item.id === variant) ?? variants[0]);
-	const codeSample = $derived(`html[data-theme-transition="${variant}"]::view-transition-new(root) {
+	const selected_variant = $derived(
+		variants.find((item) => item.id === variant) ?? variants[0],
+	);
+	const code_sample =
+		$derived(`html[data-theme-transition="${variant}"]::view-transition-new(root) {
   animation-name: reveal-${variant};
 }`);
 
 	onMount(() => {
-		const savedTheme = localStorage.getItem('theme-swipe-theme');
-		const savedVariant = localStorage.getItem('theme-swipe-variant') as Variant | null;
-		const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+		const saved_theme = localStorage.getItem('theme-swipe-theme');
+		const saved_variant = localStorage.getItem(
+			'theme-swipe-variant',
+		) as Variant | null;
+		const prefers_dark = window.matchMedia(
+			'(prefers-color-scheme: dark)',
+		).matches;
 
-		if (isVariant(savedVariant)) variant = savedVariant;
-		theme = savedTheme === 'dark' || (!savedTheme && prefersDark) ? 'dark' : 'light';
+		if (is_variant(saved_variant)) variant = saved_variant;
+		theme =
+			saved_theme === 'dark' || (!saved_theme && prefers_dark)
+				? 'dark'
+				: 'light';
 
-		document.documentElement.classList.toggle('dark', theme === 'dark');
+		document.documentElement.classList.toggle(
+			'dark',
+			theme === 'dark',
+		);
 		document.documentElement.style.colorScheme = theme;
 		document.documentElement.dataset.themeTransition = variant;
 		mounted = true;
 	});
 
-	function applyTheme(nextTheme: 'light' | 'dark') {
-		theme = nextTheme;
-		localStorage.setItem('theme-swipe-theme', nextTheme);
-		document.documentElement.classList.toggle('dark', nextTheme === 'dark');
-		document.documentElement.style.colorScheme = nextTheme;
+	function apply_theme(next_theme: 'light' | 'dark') {
+		theme = next_theme;
+		localStorage.setItem('theme-swipe-theme', next_theme);
+		document.documentElement.classList.toggle(
+			'dark',
+			next_theme === 'dark',
+		);
+		document.documentElement.style.colorScheme = next_theme;
 	}
 
-	function saveVariant(nextVariant: Variant) {
-		variant = nextVariant;
-		localStorage.setItem('theme-swipe-variant', nextVariant);
-		document.documentElement.dataset.themeTransition = nextVariant;
+	function save_variant(next_variant: Variant) {
+		variant = next_variant;
+		localStorage.setItem('theme-swipe-variant', next_variant);
+		document.documentElement.dataset.themeTransition = next_variant;
 	}
 
-	function setTransitionOrigin(event: MouseEvent) {
+	function set_transition_origin(event: MouseEvent) {
 		const target = event.currentTarget as HTMLElement;
 		const rect = target.getBoundingClientRect();
-		document.documentElement.style.setProperty('--swipe-x', `${rect.left + rect.width / 2}px`);
-		document.documentElement.style.setProperty('--swipe-y', `${rect.top + rect.height / 2}px`);
+		document.documentElement.style.setProperty(
+			'--swipe-x',
+			`${rect.left + rect.width / 2}px`,
+		);
+		document.documentElement.style.setProperty(
+			'--swipe-y',
+			`${rect.top + rect.height / 2}px`,
+		);
 	}
 
-	function toggleTheme(event: MouseEvent) {
-		const nextTheme = theme === 'dark' ? 'light' : 'dark';
-		setTransitionOrigin(event);
+	function toggle_theme(event: MouseEvent) {
+		const next_theme = theme === 'dark' ? 'light' : 'dark';
+		set_transition_origin(event);
 		document.documentElement.dataset.themeTransition = variant;
 
 		if ('startViewTransition' in document) {
-			const transition = document.startViewTransition(() => applyTheme(nextTheme));
+			const transition = document.startViewTransition(() =>
+				apply_theme(next_theme),
+			);
 			transition.finished.finally(() => {
 				document.documentElement.dataset.themeTransition = variant;
 			});
 			return;
 		}
 
-		applyTheme(nextTheme);
+		apply_theme(next_theme);
 	}
 </script>
 
@@ -129,15 +160,20 @@
 			<p class="kicker">Theme transition test bench</p>
 			<h1 id="page-title">Swipe lab</h1>
 			<p class="intro">
-				Pick a transition, then flip the theme. Each option uses the same View Transitions API
-				snapshot, but swaps the clip or mask animation on the new root view.
+				Pick a transition, then flip the theme. Each option uses the
+				same View Transitions API snapshot, but swaps the clip or mask
+				animation on the new root view.
 			</p>
 		</div>
 
 		<div class="control-deck" aria-label="Theme swipe controls">
 			<label>
 				<span>Swipe variant</span>
-				<select value={variant} onchange={(event) => saveVariant(event.currentTarget.value as Variant)}>
+				<select
+					value={variant}
+					onchange={(event) =>
+						save_variant(event.currentTarget.value as Variant)}
+				>
 					{#each variants as item}
 						<option value={item.id}>{item.label}</option>
 					{/each}
@@ -146,25 +182,30 @@
 
 			<button
 				class="theme-toggle"
-				onclick={toggleTheme}
+				onclick={toggle_theme}
 				aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
 				disabled={!mounted}
 			>
-				<span class="toggle-glyph" aria-hidden="true">{theme === 'dark' ? '☾' : '☀'}</span>
+				<span class="toggle-glyph" aria-hidden="true"
+					>{theme === 'dark' ? '☾' : '☀'}</span
+				>
 				<span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
 			</button>
 		</div>
 	</section>
 
-	<section class="stage" aria-label="Selected transition preview information">
+	<section
+		class="stage"
+		aria-label="Selected transition preview information"
+	>
 		<div class="stage-card primary-card">
 			<span class="card-label">Selected</span>
-			<h2>{selectedVariant.label}</h2>
-			<p>{selectedVariant.description}</p>
+			<h2>{selected_variant.label}</h2>
+			<p>{selected_variant.description}</p>
 		</div>
 		<div class="stage-card sample-card">
 			<span class="card-label">CSS hook</span>
-			<pre><code>{codeSample}</code></pre>
+			<pre><code>{code_sample}</code></pre>
 		</div>
 	</section>
 
@@ -172,7 +213,7 @@
 		{#each variants as item, index}
 			<button
 				class:active={variant === item.id}
-				onclick={() => saveVariant(item.id)}
+				onclick={() => save_variant(item.id)}
 				aria-pressed={variant === item.id}
 			>
 				<span>{String(index + 1).padStart(2, '0')}</span>
@@ -221,13 +262,36 @@
 		min-width: 320px;
 		min-height: 100vh;
 		background:
-			linear-gradient(90deg, color-mix(in oklch, var(--line), transparent 86%) 1px, transparent 1px) 0 0 / 44px 44px,
-			linear-gradient(color-mix(in oklch, var(--line), transparent 88%) 1px, transparent 1px) 0 0 / 44px 44px,
-			radial-gradient(circle at 85% 15%, color-mix(in oklch, var(--accent-2), transparent 62%), transparent 28rem),
-			radial-gradient(circle at 5% 90%, color-mix(in oklch, var(--accent-3), transparent 66%), transparent 26rem),
+			linear-gradient(
+					90deg,
+					color-mix(in oklch, var(--line), transparent 86%) 1px,
+					transparent 1px
+				)
+				0 0 / 44px 44px,
+			linear-gradient(
+					color-mix(in oklch, var(--line), transparent 88%) 1px,
+					transparent 1px
+				)
+				0 0 / 44px 44px,
+			radial-gradient(
+				circle at 85% 15%,
+				color-mix(in oklch, var(--accent-2), transparent 62%),
+				transparent 28rem
+			),
+			radial-gradient(
+				circle at 5% 90%,
+				color-mix(in oklch, var(--accent-3), transparent 66%),
+				transparent 26rem
+			),
 			var(--bg);
 		color: var(--ink);
-		font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		font-family:
+			ui-sans-serif,
+			system-ui,
+			-apple-system,
+			BlinkMacSystemFont,
+			'Segoe UI',
+			sans-serif;
 	}
 
 	:global(::view-transition-group(root)) {
@@ -248,42 +312,68 @@
 		animation-name: reveal-diagonal-dark;
 	}
 
-	:global(html[data-theme-transition='opposite']::view-transition-new(root)) {
+	:global(
+		html[data-theme-transition='opposite']::view-transition-new(root)
+	) {
 		animation-name: reveal-opposite-light;
 	}
 
-	:global(html.dark[data-theme-transition='opposite']::view-transition-new(root)) {
+	:global(
+		html.dark[data-theme-transition='opposite']::view-transition-new(
+				root
+			)
+	) {
 		animation-name: reveal-opposite-dark;
 	}
 
-	:global(html[data-theme-transition='circle']::view-transition-new(root)) {
+	:global(
+		html[data-theme-transition='circle']::view-transition-new(root)
+	) {
 		animation-name: reveal-circle;
 	}
 
-	:global(html[data-theme-transition='diamond']::view-transition-new(root)) {
+	:global(
+		html[data-theme-transition='diamond']::view-transition-new(root)
+	) {
 		animation-name: reveal-diamond;
 	}
 
-	:global(html[data-theme-transition='horizontal']::view-transition-new(root)) {
+	:global(
+		html[data-theme-transition='horizontal']::view-transition-new(
+				root
+			)
+	) {
 		animation-name: reveal-horizontal;
 	}
 
-	:global(html[data-theme-transition='vertical']::view-transition-new(root)) {
+	:global(
+		html[data-theme-transition='vertical']::view-transition-new(root)
+	) {
 		animation-name: reveal-vertical;
 	}
 
-	:global(html[data-theme-transition='split']::view-transition-new(root)) {
+	:global(
+		html[data-theme-transition='split']::view-transition-new(root)
+	) {
 		animation-name: reveal-split;
 	}
 
-	:global(html[data-theme-transition='blinds']::view-transition-new(root)) {
+	:global(
+		html[data-theme-transition='blinds']::view-transition-new(root)
+	) {
 		animation-name: reveal-blinds;
 		mask: linear-gradient(#000 0 0) 0 0 / 100% 8% no-repeat;
 	}
 
-	:global(html[data-theme-transition='bands']::view-transition-new(root)) {
+	:global(
+		html[data-theme-transition='bands']::view-transition-new(root)
+	) {
 		animation-name: reveal-bands;
-		mask-image: linear-gradient(115deg, #000 0 42%, transparent 48% 100%);
+		mask-image: linear-gradient(
+			115deg,
+			#000 0 42%,
+			transparent 48% 100%
+		);
 		mask-size: 240% 240%;
 	}
 
@@ -492,7 +582,10 @@
 		min-height: 56px;
 		border: 3px solid var(--line);
 		border-radius: 0;
-		font: 900 18px/1 ui-sans-serif, system-ui, sans-serif;
+		font:
+			900 18px/1 ui-sans-serif,
+			system-ui,
+			sans-serif;
 	}
 
 	select {
