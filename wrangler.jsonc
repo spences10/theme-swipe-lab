@@ -10,4 +10,7 @@
 	},
 	"workers_dev": true,
 	"preview_urls": true,
+	"routes": [
+		{ "pattern": "theme-swipe-lab.ss10.dev", "custom_domain": true },
+	],
 }
