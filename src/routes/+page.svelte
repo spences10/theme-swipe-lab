@@ -46,13 +46,19 @@
 			id: 'blinds',
 			label: 'Venetian blinds',
 			description:
-				'Alternating horizontal bands scan the new theme in.',
+				'Horizontal slats open in place like a blind tilt.',
+		},
+		{
+			id: 'vertical-blinds',
+			label: 'Vertical blinds',
+			description:
+				'Vertical slats pivot open from side-to-side strips.',
 		},
 		{
 			id: 'bands',
 			label: 'Angled bands',
 			description:
-				'A striped diagonal mask sweeps across the viewport.',
+				'Diagonal ribbons widen as they drift across the viewport.',
 		},
 	] as const;
 
@@ -257,6 +263,24 @@
 		--shadow: 12px 12px 0 oklch(4% 0.02 250);
 	}
 
+	@property --blind-open {
+		syntax: '<percentage>';
+		inherits: false;
+		initial-value: 0%;
+	}
+
+	@property --vertical-blind-open {
+		syntax: '<percentage>';
+		inherits: false;
+		initial-value: 0%;
+	}
+
+	@property --band-fill {
+		syntax: '<percentage>';
+		inherits: false;
+		initial-value: 0%;
+	}
+
 	:global(body) {
 		margin: 0;
 		min-width: 320px;
@@ -361,18 +385,43 @@
 	:global(
 		html[data-theme-transition='blinds']::view-transition-new(root)
 	) {
+		--blind-open: 0%;
 		animation-name: reveal-blinds;
-		mask: linear-gradient(#000 0 0) 0 0 / 100% 8% no-repeat;
+		clip-path: none;
+		mask-image: repeating-linear-gradient(
+			to bottom,
+			#000 0 var(--blind-open),
+			transparent var(--blind-open) 12.5%
+		);
+		mask-repeat: no-repeat;
+	}
+
+	:global(
+		html[data-theme-transition='vertical-blinds']::view-transition-new(
+				root
+			)
+	) {
+		--vertical-blind-open: 0%;
+		animation-name: reveal-vertical-blinds;
+		clip-path: none;
+		mask-image: repeating-linear-gradient(
+			to right,
+			#000 0 var(--vertical-blind-open),
+			transparent var(--vertical-blind-open) 10%
+		);
+		mask-repeat: no-repeat;
 	}
 
 	:global(
 		html[data-theme-transition='bands']::view-transition-new(root)
 	) {
+		--band-fill: 0%;
 		animation-name: reveal-bands;
-		mask-image: linear-gradient(
+		clip-path: none;
+		mask-image: repeating-linear-gradient(
 			115deg,
-			#000 0 42%,
-			transparent 48% 100%
+			#000 0 var(--band-fill),
+			transparent var(--band-fill) 16%
 		);
 		mask-size: 240% 240%;
 	}
@@ -470,19 +519,43 @@
 
 	@keyframes reveal-blinds {
 		0% {
-			mask-size: 100% 0%;
+			--blind-open: 0%;
+			opacity: 0.76;
+		}
+		70% {
+			--blind-open: 10.6%;
 		}
 		100% {
-			mask-size: 100% 140%;
+			--blind-open: 12.5%;
+			opacity: 1;
+		}
+	}
+
+	@keyframes reveal-vertical-blinds {
+		0% {
+			--vertical-blind-open: 0%;
+			opacity: 0.76;
+		}
+		70% {
+			--vertical-blind-open: 8.4%;
+		}
+		100% {
+			--vertical-blind-open: 10%;
+			opacity: 1;
 		}
 	}
 
 	@keyframes reveal-bands {
 		0% {
+			--band-fill: 0%;
 			mask-position: 140% 140%;
-			opacity: 0.7;
+			opacity: 0.72;
+		}
+		65% {
+			--band-fill: 10%;
 		}
 		100% {
+			--band-fill: 16%;
 			mask-position: 0 0;
 			opacity: 1;
 		}
